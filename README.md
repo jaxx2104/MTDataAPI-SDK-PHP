@@ -1,4 +1,4 @@
-# MTDataAPI-SDK-PHP
+# mt-dataapi-php
 Simple PHP Wrapper for MT DataAPI v2
 # Description
 # Installation

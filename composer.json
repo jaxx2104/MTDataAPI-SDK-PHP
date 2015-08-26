@@ -1,5 +1,5 @@
 {
-  "name": "jaxx2104/MTDataAPI-SDK-PHP",
+  "name": "jaxx2104/mt-dataapi-php",
   "autoload": {
     "psr-4": {
       "MT\\": "MT/"
