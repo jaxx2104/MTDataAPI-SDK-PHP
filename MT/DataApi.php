@@ -1,7 +1,7 @@
 <?php
 /**
- *  MTDataApi-PHP
- *  @author iwashita
+ *  mt-dataapi-php
+ *  @author jaxx2104
  *  @version 0.1
  */
 
@@ -9,35 +9,37 @@ namespace MT;
 
 class DataApi
 {
-    const VERSION = "v2";
 
-    private $apiUrl;
+    const API_VERSION = "v2";
+    const API_REQUIRED_ERROR = "Empty required parameter.";
+    private $API_URL;
+
     private $accessToken;
     private $params;
     public  $response;
 
-    public function __construct($apiUrl) {
-        if (empty($apiUrl)) {
+    public function __construct($API_URL) {
+        if (empty($API_URL)) {
             var_dump("empty dataapi url");
             exit;
         }
 
-        $this->apiUrl = $apiUrl;
+        $this->API_URL = $API_URL;
     }
 
 
     /**
-     *  Login method
+     *  authentication method
      *  @param  String  Username
      *  @param  String  Password
      *  @return boolean true or false
      */
     public function login($params = array())
     {
-        $url = sprintf("%s/%s/authentication", $this->apiUrl, self::VERSION);
+        $url = sprintf("%s/%s/authentication", $this->API_URL, self::API_VERSION);
 
         if (empty($params["username"]) || empty($params["password"])) {
-            $this->response['error'] = 'empty user or pass';
+            $this->response['error'] = self::API_REQUIRED_ERROR;
             return false;
         }
 
@@ -49,7 +51,7 @@ class DataApi
 
         $params = array_merge($defaultParams, $params);
 
-        $status = $this->userRequest(array(
+        $status = $this->httpRequest(array(
             'method'        => 'post',
             'url'           => $url,
             'json_params'   => false,
@@ -66,17 +68,17 @@ class DataApi
     }
 
     /**
-     *  getCategory
+     *  get categories method
      *  @param  String  BlogId
      *  @param  String  Category
      *  @return boolean true or false
      */
     public function listCategory($blogId = null, $category = null, $params = array())
     {
-        $url = sprintf("%s/%s/sites/{$blogId}/categories", $this->apiUrl, self::VERSION);
+        $url = sprintf("%s/%s/sites/{$blogId}/categories", $this->API_URL, self::API_VERSION);
 
         if (empty($blogId)) {
-            $this->response['error'] = 'empty blogid';
+            $this->response['error'] = self::API_REQUIRED_ERROR;
             return false;
         }
 
@@ -99,7 +101,7 @@ class DataApi
 
         $params = array_merge($defaultParams, $params);
 
-        $status = $this->userRequest(array(
+        $status = $this->httpRequest(array(
             'method'        => 'get',
             "url"           => $url,
             'json_params'   => true,
@@ -115,17 +117,178 @@ class DataApi
     }
 
     /**
-     * ListEntries method
+     * get entries method
      * @param Int    BlogID
      * @param Array  Params
      * @return boolean true or false
      */
     public function listEntries($blogId = null, $params = array())
     {
-        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->apiUrl, self::VERSION);
+        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->API_URL, self::API_VERSION);
 
         if (empty($blogId)) {
-            $this->response['error'] = 'empty blogid';
+            $this->response['error'] = self::API_REQUIRED_ERROR;
+            return false;
+        }
+
+        $defaultParams = array(
+            'search'         => null,
+            'searchFields'   => null,
+            'limit'          => null,
+            "offset"         => null,
+            "sortBy"         => null,
+            "sortOrder"      => null,
+            "fields"         => null,
+            "includeIds"     => null,
+            "excludeIds"     => null,
+            "status"         => null,
+            "maxComments"    => null,
+            "maxTrackbacks"  => null,
+            "no_text_filter" => null,
+        );
+        $params = array_merge($defaultParams, $params);
+
+        $status = $this->httpRequest(array(
+            'method'        => 'get',
+            'url'           => $url,
+            'json_params'   => true,
+            'login'         => true,
+            'params'        => $params
+        ));
+
+        if ($status) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+
+    /**
+     * post entry method
+     * @param Int    BlogID
+     * @param Array  Params
+     * @return boolean true or false
+     */
+    public function createEntry($blogId = null, $params = array())
+    {
+        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->API_URL, self::API_VERSION);
+
+        if (empty($blogId)) {
+            $this->response['error'] = self::API_REQUIRED_ERROR;
+            return false;
+        }
+
+        $defaultParams = array(
+            "allowComments"   => false,
+            "allowTrackbacks" => false,
+            /*
+               "basename"        => null,
+               'body'            => null,
+               "categories"      => null,
+               "customFields"    => null,
+               "date"            => null,
+               "excerpt"         => null,
+               "keywords"        => null,
+               'more'            => null,
+               "status"          => null,
+               "tags"            => null,
+               'title'           => null,
+             */
+            "updatable"       => true,
+        );
+
+        $params = array_merge($defaultParams, $params);
+
+        $status = $this->httpRequest(array(
+            'method'        => 'post',
+            'url'           => $url,
+            'request'       => 'entry',
+            'json_params'   => true,
+            'login'         => true,
+            'params'        => $params
+        ));
+
+
+        if($status) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+
+    /**
+     * put entry method
+     * @param Int    BlogID
+     * @param Int    EntryID
+     * @param Array  Params
+     * @return boolean true or false
+     */
+    public function updateEntry($blogId = null, $entryId = null, $params = null)
+    {
+        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->API_URL, self::API_VERSION);
+
+        if(empty($blogId) || empty($entryId)) {
+            $this->response['error'] = 'empty blogid or entryId';
+            return false;
+        }
+
+        if (isset($entryId)) {
+            $url .= "/".$entryId;
+        }
+
+        $defaultParams = array(
+            "allowComments"   => false,
+            "allowTrackbacks" => false,
+            /*
+               "basename"        => null,
+               'body'            => null,
+               "categories"      => null,
+               "customFields"    => null,
+               "date"            => null,
+               "excerpt"         => null,
+               "keywords"        => null,
+               'more'            => null,
+               "status"          => null,
+               "tags"            => null,
+               'title'           => null,
+             */
+            "updatable"       => true,
+        );
+
+        $params = array_merge($defaultParams, $params);
+
+        $status = $this->httpRequest(array(
+            'method'        => 'put',
+            'url'           => $url,
+            'request'       => 'entry',
+            'json_params'   => true,
+            'login'         => true,
+            'params'        => $params
+        ));
+
+        if ($status) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+
+
+    /**
+     * get pages method
+     * @param Int    BlogID
+     * @param Array  Params
+     * @return boolean true or false
+     */
+    public function listPages($blogId = null, $params = array())
+    {
+        $url = sprintf("%s/%s/sites/{$blogId}/pages", $this->API_URL, self::API_VERSION);
+
+        if (empty($blogId)) {
+            $this->response['error'] = self::API_REQUIRED_ERROR;
             return false;
         }
 
@@ -147,7 +310,7 @@ class DataApi
         );
         $params = array_merge($defaultParams, $params);
 
-        $status = $this->userRequest(array(
+        $status = $this->httpRequest(array(
             'method'        => 'get',
             'url'           => $url,
             'json_params'   => true,
@@ -164,31 +327,41 @@ class DataApi
     }
 
     /**
-     * InsertEntries method
+     * post page method
      * @param Int    BlogID
      * @param Array  Params
      * @return boolean true or false
      */
-    public function createEntry($blogId = null, $params = array())
+    public function createPage($blogId = null, $params = array())
     {
-        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->apiUrl, self::VERSION);
+        $url = sprintf("%s/%s/sites/{$blogId}/pages", $this->API_URL, self::API_VERSION);
 
         if (empty($blogId)) {
-            $this->response['error'] = 'empty blogid';
+            $this->response['error'] = self::API_REQUIRED_ERROR;
             return false;
         }
 
         $defaultParams = array(
-            'title'        => null,
-            'body'         => null,
-            'more'         => null,
-            "basename"     => null,
-            "customFields" => null,
-            "updatable"    => true,
+            "allowComments"   => false,
+            "allowTrackbacks" => false,
+            /*
+               "basename"        => null,
+               'body'            => null,
+               "customFields"    => null,
+               "date"            => null,
+               "excerpt"         => null,
+               "folder"          => null,
+               "keywords"        => null,
+               'more'            => null,
+               "status"          => null,
+               "tags"            => null,
+               'title'           => null,
+             */
+            "updatable"       => true,
         );
 
         $params = array_merge($defaultParams, $params);
-        $status = $this->userRequest(array(
+        $status = $this->httpRequest(array(
             'method'        => 'post',
             'url'           => $url,
             'request'       => 'entry',
@@ -206,63 +379,19 @@ class DataApi
 
     }
 
-    /**
-     * InsertEntries method
-     * @param Int    BlogID
-     * @param Array  Params
-     * @return boolean true or false
-     */
-    public function updateEntry($blogId = null, $entryId = null, $params = null)
-    {
-        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->apiUrl, self::VERSION);
 
-        if(empty($blogId) || empty($entryId)) {
-            $this->response['error'] = 'empty blogid or entryId';
-            return false;
-        }
-
-        if (isset($entryId)) {
-            $url .= "/".$entryId;
-        }
-
-        $defaultParams = array(
-            'title'        => null,
-            'body'         => null,
-            'more'         => null,
-            "basename"     => null,
-            "customFields" => null,
-        );
-
-        $params = array_merge($defaultParams, $params);
-
-        $status = $this->userRequest(array(
-            'method'        => 'put',
-            'url'           => $url,
-            'request'       => 'entry',
-            'json_params'   => true,
-            'login'         => true,
-            'params'        => $params
-        ));
-
-        if ($status) {
-            return true;
-        } else {
-            return false;
-        }
-
-    }
 
     /**
-     *  Other Request
+     *  Http Request
      *  @param  array   method url login otherParam
      *  @return boolean true or false
      */
-    public function userRequest($params = array())
+    public function httpRequest($params = array())
     {
         $this->params = array_merge($this->defaultParams(), $params);
 
         if (empty($this->params['url'])) {
-            $this->response['error'] = 'empty url';
+            $this->response['error'] = self::API_REQUIRED_ERROR;
             return false;
         }
 
@@ -312,7 +441,6 @@ class DataApi
      */
     private function curlMt()
     {
-
         // curl mt;
         if ($this->params['login']) {
             $header = array('X-MT-Authorization: MTAuth accessToken=' . $this->accessToken);
