@@ -6,7 +6,7 @@ composer
 
     {
         "require": {
-            "jaxx2104/MTDataAPI-SDK-PHP": "dev-master"
+            "jaxx2104/mt-dataapi-php": "dev-master"
         }
     }
 # Usage
