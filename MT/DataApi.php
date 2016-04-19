@@ -2,7 +2,7 @@
 /**
  *  mt-dataapi-php
  *  @author jaxx2104
- *  @version 0.1
+ *  @version 0.2
  */
 
 namespace MT;
@@ -122,13 +122,17 @@ class DataApi
      * @param Array  Params
      * @return boolean true or false
      */
-    public function listEntries($blogId = null, $params = array())
+    public function listEntries($blogId = null, $entryId = null, $params = array())
     {
         $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->API_URL, self::API_VERSION);
 
         if (empty($blogId)) {
             $this->response['error'] = self::API_REQUIRED_ERROR;
             return false;
+        }
+
+        if (isset($entryId)) {
+            $url .= "/" . $entryId;
         }
 
         $defaultParams = array(
@@ -195,7 +199,6 @@ class DataApi
                "tags"            => null,
                'title'           => null,
              */
-            "updatable"       => true,
         );
 
         $params = array_merge($defaultParams, $params);
@@ -254,7 +257,6 @@ class DataApi
                "tags"            => null,
                'title'           => null,
              */
-            "updatable"       => true,
         );
 
         $params = array_merge($defaultParams, $params);
@@ -263,6 +265,43 @@ class DataApi
             'method'        => 'put',
             'url'           => $url,
             'request'       => 'entry',
+            'json_params'   => true,
+            'login'         => true,
+            'params'        => $params
+        ));
+
+        if ($status) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+
+    /**
+     * delete entry method
+     * @param Int    BlogID
+     * @param Int    EntryID
+     * @param Array  Params
+     * @return boolean true or false
+     */
+    public function deleteEntry($blogId = null, $entryId = null, $params = null)
+    {
+        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->API_URL, self::API_VERSION);
+
+        if(empty($blogId) || empty($entryId)) {
+            $this->response['error'] = 'empty blogid or entryId';
+            return false;
+        }
+
+        if (isset($entryId)) {
+            $url .= "/".$entryId;
+        }
+
+        $status = $this->httpRequest(array(
+            'method'        => 'delete',
+            'url'           => $url,
+            'request'       => null,
             'json_params'   => true,
             'login'         => true,
             'params'        => $params
@@ -357,14 +396,13 @@ class DataApi
                "tags"            => null,
                'title'           => null,
              */
-            "updatable"       => true,
         );
 
         $params = array_merge($defaultParams, $params);
         $status = $this->httpRequest(array(
             'method'        => 'post',
             'url'           => $url,
-            'request'       => 'entry',
+            'request'       => 'page',
             'json_params'   => true,
             'login'         => true,
             'params'        => $params
@@ -497,6 +535,11 @@ class DataApi
         $this->response['error'] = $api_response_error;
         $this->response['errno'] = $api_response_errno;
     }
+
+
+
+
+
 
 
 }
