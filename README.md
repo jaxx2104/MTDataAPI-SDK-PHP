@@ -3,13 +3,15 @@ Simple PHP Wrapper for MT DataAPI v2
 # Description
 # Installation
 composer
-
+```json
     {
         "require": {
             "jaxx2104/mt-dataapi-php": "dev-master"
         }
     }
+```
 # Usage
+```php
     <?php
     require_once('vendor/autoload.php');
     $url  = 'http://xxxxxxx.com/mt/mt-data-api.cgi';
@@ -34,3 +36,4 @@ composer
     }
     //success get category
     var_dump($mt->response);
+```
