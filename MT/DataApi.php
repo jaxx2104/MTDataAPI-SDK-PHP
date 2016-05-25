@@ -10,8 +10,9 @@ namespace MT;
 class DataApi
 {
 
-    const API_VERSION = "v2";
-    const API_REQUIRED_ERROR = "Empty required parameter.";
+    const VERSION = "v3";
+    const REQUIRED_ERROR = "Empty required parameter.";
+
     private $API_URL;
 
     private $accessToken;
@@ -36,10 +37,10 @@ class DataApi
      */
     public function login($params = array())
     {
-        $url = sprintf("%s/%s/authentication", $this->API_URL, self::API_VERSION);
+        $url = sprintf("%s/%s/authentication", $this->API_URL, self::VERSION);
 
         if (empty($params["username"]) || empty($params["password"])) {
-            $this->response['error'] = self::API_REQUIRED_ERROR;
+            $this->response['error'] = self::REQUIRED_ERROR;
             return false;
         }
 
@@ -75,10 +76,10 @@ class DataApi
      */
     public function listCategory($blogId = null, $category = null, $params = array())
     {
-        $url = sprintf("%s/%s/sites/{$blogId}/categories", $this->API_URL, self::API_VERSION);
+        $url = sprintf("%s/%s/sites/{$blogId}/categories", $this->API_URL, self::VERSION);
 
         if (empty($blogId)) {
-            $this->response['error'] = self::API_REQUIRED_ERROR;
+            $this->response['error'] = self::REQUIRED_ERROR;
             return false;
         }
 
@@ -122,17 +123,25 @@ class DataApi
      * @param Array  Params
      * @return boolean true or false
      */
-    public function listEntries($blogId = null, $entryId = null, $params = array())
+    public function listEntries($blogId = null, $params = array())
     {
-        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->API_URL, self::API_VERSION);
+        $url = sprintf("%s/%s/sites/{$blogId}/", $this->API_URL, self::VERSION);
 
         if (empty($blogId)) {
-            $this->response['error'] = self::API_REQUIRED_ERROR;
+            $this->response['error'] = self::REQUIRED_ERROR;
             return false;
         }
 
-        if (isset($entryId)) {
-            $url .= "/" . $entryId;
+        if (isset($params["entry_id"])) {
+            $url .= sprintf("entries/%s", $params["entry_id"]);
+            unset($params["entry_id"]);
+
+        } elseif (isset($params["category_id"])) {
+            $url .= sprintf("categories/%s/entries", $params["category_id"]);
+            unset($params["category_id"]);
+
+        } else {
+            $url .= "entries";
         }
 
         $defaultParams = array(
@@ -149,6 +158,9 @@ class DataApi
             "maxComments"    => null,
             "maxTrackbacks"  => null,
             "no_text_filter" => null,
+            "dateField"      => null,
+            "dateFrom"       => null,
+            "dateTo"         => null,
         );
         $params = array_merge($defaultParams, $params);
 
@@ -176,10 +188,10 @@ class DataApi
      */
     public function createEntry($blogId = null, $params = array())
     {
-        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->API_URL, self::API_VERSION);
+        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->API_URL, self::VERSION);
 
         if (empty($blogId)) {
-            $this->response['error'] = self::API_REQUIRED_ERROR;
+            $this->response['error'] = self::REQUIRED_ERROR;
             return false;
         }
 
@@ -230,7 +242,7 @@ class DataApi
      */
     public function updateEntry($blogId = null, $entryId = null, $params = null)
     {
-        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->API_URL, self::API_VERSION);
+        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->API_URL, self::VERSION);
 
         if(empty($blogId) || empty($entryId)) {
             $this->response['error'] = 'empty blogid or entryId';
@@ -287,7 +299,7 @@ class DataApi
      */
     public function deleteEntry($blogId = null, $entryId = null, $params = null)
     {
-        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->API_URL, self::API_VERSION);
+        $url = sprintf("%s/%s/sites/{$blogId}/entries", $this->API_URL, self::VERSION);
 
         if(empty($blogId) || empty($entryId)) {
             $this->response['error'] = 'empty blogid or entryId';
@@ -324,10 +336,10 @@ class DataApi
      */
     public function listPages($blogId = null, $params = array())
     {
-        $url = sprintf("%s/%s/sites/{$blogId}/pages", $this->API_URL, self::API_VERSION);
+        $url = sprintf("%s/%s/sites/{$blogId}/pages", $this->API_URL, self::VERSION);
 
         if (empty($blogId)) {
-            $this->response['error'] = self::API_REQUIRED_ERROR;
+            $this->response['error'] = self::REQUIRED_ERROR;
             return false;
         }
 
@@ -373,10 +385,10 @@ class DataApi
      */
     public function createPage($blogId = null, $params = array())
     {
-        $url = sprintf("%s/%s/sites/{$blogId}/pages", $this->API_URL, self::API_VERSION);
+        $url = sprintf("%s/%s/sites/{$blogId}/pages", $this->API_URL, self::VERSION);
 
         if (empty($blogId)) {
-            $this->response['error'] = self::API_REQUIRED_ERROR;
+            $this->response['error'] = self::REQUIRED_ERROR;
             return false;
         }
 
@@ -429,7 +441,7 @@ class DataApi
         $this->params = array_merge($this->defaultParams(), $params);
 
         if (empty($this->params['url'])) {
-            $this->response['error'] = self::API_REQUIRED_ERROR;
+            $this->response['error'] = self::REQUIRED_ERROR;
             return false;
         }
 

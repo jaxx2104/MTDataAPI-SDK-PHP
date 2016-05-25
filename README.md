@@ -1,5 +1,5 @@
 # mt-dataapi-php
-Simple PHP Wrapper for MT DataAPI v2
+Simple PHP Wrapper for MT DataAPI v3
 # Description
 # Installation
 composer
